@@ -336,14 +336,27 @@ body{padding-bottom:0}
     return url.toString();
   }
   if(window.fbq) fbq('track','ViewContent',{content_name:'Tarô do Amor de Bolso',value:14.90,currency:'BRL'});
+  // Compra com 1 clique pela Cakto (Gerador de Upsell). Se o script da Cakto não carregar, o botão vai para o checkout normal.
+  function caktoBtn(id){ var el=document.getElementById(id); return el && el.shadowRoot && el.shadowRoot.querySelector('button'); }
   document.querySelectorAll('a.cta').forEach(function(a){
     a.href = withUtm(cfg.checkoutUrl) || '#';
-    a.addEventListener('click', function(){ if(window.fbq) fbq('track','InitiateCheckout',{content_name:'Tarô do Amor de Bolso',value:14.90,currency:'BRL'}); });
+    a.addEventListener('click', function(e){
+      if(window.fbq) fbq('track','InitiateCheckout',{content_name:'Tarô do Amor de Bolso',value:14.90,currency:'BRL'});
+      var b=caktoBtn('ckUp');
+      if(b){ e.preventDefault(); b.click(); }
+    });
   });
   var dsm=document.getElementById('dsm'), dsYes=document.getElementById('dsYes');
   dsYes.href = withUtm(cfg.downsellUrl) || '#';
-  dsYes.addEventListener('click', function(){ if(window.fbq) fbq('track','InitiateCheckout',{content_name:'Tarô do Amor de Bolso (desconto)',value:9.90,currency:'BRL'}); });
+  dsYes.addEventListener('click', function(e){
+    if(window.fbq) fbq('track','InitiateCheckout',{content_name:'Tarô do Amor de Bolso (desconto)',value:9.90,currency:'BRL'});
+    var b=caktoBtn('ckDown');
+    if(b){ e.preventDefault(); b.click(); }
+  });
   function goThanks(){ if(/^https?:/.test(cfg.recusaUrl||'')){ location.href=withUtm(cfg.recusaUrl); return; } dsm.classList.remove('on'); document.getElementById('gracias').classList.add('on'); document.body.style.overflow='hidden'; scrollTo(0,0); }
+
+  // Volta da Cakto depois da compra de 1 clique: ?obrigado=1 abre direto a tela de obrigado
+  if(/[?&]obrigado=1/.test(location.search)){ document.getElementById('gracias').classList.add('on'); document.body.style.overflow='hidden'; }
   document.querySelectorAll('a.nao').forEach(function(a){ a.href='#'; a.addEventListener('click', function(e){ e.preventDefault(); dsm.classList.add('on'); if(window.fbq) fbq('trackCustom','Downsell_Visto',{value:9.90,currency:'BRL'}); }); });
   document.getElementById('dsNo').addEventListener('click', goThanks);
   document.getElementById('dsClose').addEventListener('click', function(){ dsm.classList.remove('on'); });
@@ -357,5 +370,14 @@ body{padding-bottom:0}
   addEventListener('scroll', chk, {passive:true}); chk();
 })();
 </script>
+
+<!-- Cakto · Gerador de Upsell (botão de 1 clique, fica escondido; os botões da página acionam ele) -->
+<div aria-hidden="true" style="position:absolute;left:-9999px;top:0;width:1px;height:1px;overflow:hidden">
+  <cakto-upsell-buttons>
+    <cakto-upsell-accept id="ckUp" bg-color="#0f7865" text-color="#ffffff" upsell-accept-url="members_area" offer-id="35e64ye" app-base-url="https://app.cakto.com.br" offer-type="upsell" upsell-reject-url="members_area">Sim! Quero o Tarô do Amor</cakto-upsell-accept>
+    <cakto-upsell-accept id="ckDown" bg-color="#0f7865" text-color="#ffffff" upsell-accept-url="members_area" offer-id="35njbv3" app-base-url="https://app.cakto.com.br" offer-type="downsell" upsell-reject-url="members_area">Sim! Quero por R$ 9,90</cakto-upsell-accept>
+  </cakto-upsell-buttons>
+</div>
+<script type="text/javascript" src="https://caktoscripts.nyc3.cdn.digitaloceanspaces.com/upsell.js"></script>
 </body>
 </html>
